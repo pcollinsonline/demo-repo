@@ -2,7 +2,7 @@ import os from 'node:os'
 
 import { BaseApp } from '@packages/aws-cdk-lib'
 
-import { FargateStack } from '../lib/fargate-stack.js'
+import { FargateStack } from './stack/fargate-stack.js'
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- TODO
 const CDK_STAGE = process.env['CDK_STAGE'] ?? os.userInfo().username
