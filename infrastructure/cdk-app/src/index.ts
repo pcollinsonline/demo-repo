@@ -18,7 +18,7 @@ const app = new BaseApp({
     stage: CDK_STAGE,
   },
   defaultStackSynthesizer: AppStagingSynthesizer.defaultResources({
-    appId: 'CachedDockerImageDemo',
+    appId: 'CachedDockerImgDemo',
     imageAssetVersionCount: 10, // Keep 10 latest images
     stagingBucketEncryption: BucketEncryption.S3_MANAGED,
   }),
