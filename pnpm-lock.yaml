@@ -93,6 +93,9 @@ importers:
 
   infrastructure/cdk-app:
     dependencies:
+      '@aws-cdk/app-staging-synthesizer-alpha':
+        specifier: 2.233.0-alpha.0
+        version: 2.233.0-alpha.0(aws-cdk-lib@2.232.2(constructs@10.4.4))(constructs@10.4.4)
       aws-cdk-lib:
         specifier: 2.232.2
         version: 2.232.2(constructs@10.4.4)
@@ -118,6 +121,9 @@ importers:
       aws-cdk:
         specifier: 2.1100.1
         version: 2.1100.1
+      cdk-nag:
+        specifier: 2.37.55
+        version: 2.37.55(aws-cdk-lib@2.232.2(constructs@10.4.4))(constructs@10.4.4)
       tsx:
         specifier: 4.21.0
         version: 4.21.0
@@ -262,6 +268,13 @@ packages:
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
+
+  '@aws-cdk/app-staging-synthesizer-alpha@2.233.0-alpha.0':
+    resolution: {integrity: sha512-rCeRI+JtEUEwPzZSwQYifk2FqRUDgiTKRJKxwNF4Dl2T5h4SyEKjtzLcmXLc+zd+yf7SD8ZXYeuljCnpY76Nww==}
+    engines: {node: '>= 18.0.0'}
+    peerDependencies:
+      aws-cdk-lib: ^2.233.0
+      constructs: ^10.0.0
 
   '@aws-cdk/asset-awscli-v1@2.2.242':
     resolution: {integrity: sha512-4c1bAy2ISzcdKXYS1k4HYZsNrgiwbiDzj36ybwFVxEWZXVAP0dimQTCaB9fxu7sWzEjw3d+eaw6Fon+QTfTIpQ==}
@@ -1663,6 +1676,12 @@ packages:
 
   caniuse-lite@1.0.30001754:
     resolution: {integrity: sha512-x6OeBXueoAceOmotzx3PO4Zpt4rzpeIFsSr6AAePTZxSkXiYDUmpypEl7e2+8NCd9bD7bXjqyef8CJYPC1jfxg==}
+
+  cdk-nag@2.37.55:
+    resolution: {integrity: sha512-xcAkygwbph3pp7N0UEzJBmXUH/MIsluV7DYJSeZ/V3yCr0Y0QaRGO298WyD6mi4K+Rmnpl+EJoWUxcOblOqLKA==}
+    peerDependencies:
+      aws-cdk-lib: ^2.176.0
+      constructs: ^10.0.5
 
   chai@6.2.1:
     resolution: {integrity: sha512-p4Z49OGG5W/WBCPSS/dH3jQ73kD6tiMmUM+bckNK6Jr5JHMG3k9bg/BvKR8lKmtVBKmOiuVaV2ws8s9oSbwysg==}
@@ -4135,6 +4154,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -4261,6 +4281,11 @@ snapshots:
       '@csstools/css-tokenizer': 3.0.4
       lru-cache: 10.4.3
     optional: true
+
+  '@aws-cdk/app-staging-synthesizer-alpha@2.233.0-alpha.0(aws-cdk-lib@2.232.2(constructs@10.4.4))(constructs@10.4.4)':
+    dependencies:
+      aws-cdk-lib: 2.232.2(constructs@10.4.4)
+      constructs: 10.4.4
 
   '@aws-cdk/asset-awscli-v1@2.2.242': {}
 
@@ -5595,6 +5620,11 @@ snapshots:
       upper-case: 1.1.3
 
   caniuse-lite@1.0.30001754: {}
+
+  cdk-nag@2.37.55(aws-cdk-lib@2.232.2(constructs@10.4.4))(constructs@10.4.4):
+    dependencies:
+      aws-cdk-lib: 2.232.2(constructs@10.4.4)
+      constructs: 10.4.4
 
   chai@6.2.1: {}
 
