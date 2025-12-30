@@ -123,7 +123,7 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: $(echo ${{ needs.deploy-infrastructure.outputs.ecr-repository }} | awk -F'/' '{print $NF}')
+          ECR_REPOSITORY: ${{ needs.deploy-infrastructure.outputs.ecr-repository }}
           IMAGE_TAG: ${{ github.sha }}
         uses: docker/build-push-action@v6
         with:
@@ -133,8 +133,8 @@ jobs:
           platforms: linux/amd64
           load: true
           tags: |
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+            ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ env.ECR_REPOSITORY }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
