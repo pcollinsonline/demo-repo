@@ -93,9 +93,6 @@ importers:
 
   infrastructure/cdk-app:
     dependencies:
-      '@aws-cdk/app-staging-synthesizer-alpha':
-        specifier: 2.233.0-alpha.0
-        version: 2.233.0-alpha.0(aws-cdk-lib@2.232.2(constructs@10.4.4))(constructs@10.4.4)
       aws-cdk-lib:
         specifier: 2.232.2
         version: 2.232.2(constructs@10.4.4)
@@ -268,13 +265,6 @@ packages:
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
-
-  '@aws-cdk/app-staging-synthesizer-alpha@2.233.0-alpha.0':
-    resolution: {integrity: sha512-rCeRI+JtEUEwPzZSwQYifk2FqRUDgiTKRJKxwNF4Dl2T5h4SyEKjtzLcmXLc+zd+yf7SD8ZXYeuljCnpY76Nww==}
-    engines: {node: '>= 18.0.0'}
-    peerDependencies:
-      aws-cdk-lib: ^2.233.0
-      constructs: ^10.0.0
 
   '@aws-cdk/asset-awscli-v1@2.2.242':
     resolution: {integrity: sha512-4c1bAy2ISzcdKXYS1k4HYZsNrgiwbiDzj36ybwFVxEWZXVAP0dimQTCaB9fxu7sWzEjw3d+eaw6Fon+QTfTIpQ==}
@@ -4281,11 +4271,6 @@ snapshots:
       '@csstools/css-tokenizer': 3.0.4
       lru-cache: 10.4.3
     optional: true
-
-  '@aws-cdk/app-staging-synthesizer-alpha@2.233.0-alpha.0(aws-cdk-lib@2.232.2(constructs@10.4.4))(constructs@10.4.4)':
-    dependencies:
-      aws-cdk-lib: 2.232.2(constructs@10.4.4)
-      constructs: 10.4.4
 
   '@aws-cdk/asset-awscli-v1@2.2.242': {}
 
