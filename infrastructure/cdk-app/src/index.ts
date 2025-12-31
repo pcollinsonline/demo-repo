@@ -18,6 +18,7 @@ const app = new BaseApp({
 })
 
 new AppStack(app, 'AppStack', {
+  description: 'Deployment stack for G4 application',
   env: { account: '247226602506', region: 'us-east-1' },
   environment: 'mp',
 })

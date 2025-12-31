@@ -16,8 +16,8 @@ export class AppStack extends cdk.Stack {
       imageTagMutability: ecr.TagMutability.IMMUTABLE,
       lifecycleRules: [
         {
-          description: 'Keep last 10 images',
-          maxImageCount: 10,
+          description: 'Keep last 2 images',
+          maxImageCount: 2,
         },
       ],
       removalPolicy: cdk.RemovalPolicy.DESTROY,
