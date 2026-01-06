@@ -12,6 +12,7 @@ export class AppStack extends cdk.Stack {
 
     // ECR Repository
     const ecrRepo = new ecr.Repository(this, 'AppRepository', {
+      emptyOnDelete: true,
       imageScanOnPush: true,
       imageTagMutability: ecr.TagMutability.IMMUTABLE,
       lifecycleRules: [
