@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["AWS_ACCOUNT_ID", "AWS_REGION", "CDK_STAGE"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"]

@@ -5,22 +5,27 @@ import { BaseApp } from '@packages/aws-cdk-lib'
 
 import { AppStack } from './stack/app-stack.js'
 
-// eslint-disable-next-line turbo/no-undeclared-env-vars -- TODO
 const CDK_STAGE = process.env['CDK_STAGE'] ?? os.userInfo().username
+const AWS_ACCOUNT_ID = process.env['AWS_ACCOUNT_ID']
+const AWS_REGION = process.env['AWS_REGION'] ?? 'us-east-1'
+
+if (!AWS_ACCOUNT_ID) {
+  throw new Error('Required environment variable AWS_ACCOUNT_ID must be set')
+}
 
 const app = new BaseApp({
   context: {
-    account: '247226602506',
+    account: AWS_ACCOUNT_ID,
     name: 'G4',
-    region: 'us-east-1',
+    region: AWS_REGION,
     stage: CDK_STAGE,
   },
 })
 
 new AppStack(app, 'AppStack', {
   description: 'Deployment stack for G4 application',
-  env: { account: '247226602506', region: 'us-east-1' },
-  environment: 'mp',
+  env: { account: AWS_ACCOUNT_ID, region: AWS_REGION },
+  environment: 'pc',
 })
 
 app.synth()
