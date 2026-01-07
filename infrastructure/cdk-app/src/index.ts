@@ -26,7 +26,7 @@ const app = new BaseApp({
 new AppStack(app, 'AppStack', {
   description: 'Deployment stack for G4 application',
   env: { account: AWS_ACCOUNT_ID, region: AWS_REGION },
-  environment: 'pc',
+  environment: 'mp',
 })
 
 app.synth()
