@@ -186,8 +186,3 @@ jobs:
           echo "cluster-name=$CLUSTER_NAME" >> $GITHUB_OUTPUT
           echo "alb-dns=$ALB_DNS" >> $GITHUB_OUTPUT
 
-      - name: Wait for service stability
-        run: |
-          aws ecs wait services-stable \
-            --cluster ${{ steps.deploy-cdk.outputs.cluster-name }} \
-            --services mp-api-service

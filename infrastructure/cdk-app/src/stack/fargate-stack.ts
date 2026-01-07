@@ -65,7 +65,8 @@ export class FargateStack extends cdk.Stack {
       assignPublicIp: true,
       publicLoadBalancer: true,
 
-      // Health check grace period
+      // Deployment settings
+      circuitBreaker: { enable: true, rollback: true },
       healthCheckGracePeriod: cdk.Duration.seconds(60),
     })
 
