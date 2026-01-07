@@ -5,6 +5,7 @@ import { BaseApp } from '@packages/aws-cdk-lib'
 
 import { AppStack } from './stack/app-stack.js'
 
+// todo - dot env locally
 const CDK_STAGE = process.env['CDK_STAGE'] ?? os.userInfo().username
 const AWS_ACCOUNT_ID = process.env['AWS_ACCOUNT_ID']
 const AWS_REGION = process.env['AWS_REGION'] ?? 'us-east-1'
