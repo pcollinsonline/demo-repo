@@ -61,15 +61,14 @@ jobs:
       - name: Run unit tests
         run: pnpm run test
 
-  deploy-infrastructure:
-    name: Deploy AWS Infrastructure
+  deploy-ecr:
+    name: Deploy ECR Repository
     runs-on: ubuntu-latest
-    needs: [ lint, type-check, test ]
+    needs: [lint, type-check, test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     outputs:
       ecr-repository: ${{ steps.deploy-cdk.outputs.ecr-repository }}
-      cluster-name: ${{ steps.deploy-cdk.outputs.cluster-name }}
 
     steps:
       - name: Check out code
@@ -85,26 +84,23 @@ jobs:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsDeployRole
           role-session-name: ${{ github.actor }}_${{ github.job }}
 
-      - name: Deploy CDK stacks
+      - name: Deploy AppStack (ECR)
         id: deploy-cdk
         env:
           VPC_ID: ${{ env.AWS_VPC_ID }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           cd infrastructure/cdk-app
-          pnpm exec cdk deploy --require-approval never --outputs-file outputs.json '**'
+          pnpm exec cdk deploy AppStack --require-approval never --outputs-file outputs.json
 
-          # Extract outputs
-          ECR_REPO=$(jq -r '.[] | .EcrRepositoryUri // empty' outputs.json | head -1)
-          CLUSTER_NAME=$(jq -r '.[] | .ClusterName // empty' outputs.json | head -1)
-
+          # Extract ECR repository URI
+          ECR_REPO=$(jq -r '.AppStack.EcrRepositoryUri // empty' outputs.json)
           echo "ecr-repository=$ECR_REPO" >> $GITHUB_OUTPUT
-          echo "cluster-name=$CLUSTER_NAME" >> $GITHUB_OUTPUT
 
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
-    needs: deploy-infrastructure
+    needs: deploy-ecr
 
     steps:
       - name: Check out code
@@ -133,7 +129,7 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ needs.deploy-infrastructure.outputs.ecr-repository }}
+          ECR_REPOSITORY: ${{ needs.deploy-ecr.outputs.ecr-repository }}
           IMAGE_TAG: ${{ github.sha }}
         uses: docker/build-push-action@v6
         with:
@@ -152,11 +148,21 @@ jobs:
             APP_NAME=effect-api-server
 
   deploy-ecs:
-    name: Deploy to ECS
+    name: Deploy ECS Fargate
     runs-on: ubuntu-latest
-    needs: [deploy-infrastructure, build-and-push]
+    needs: [deploy-ecr, build-and-push]
+
+    outputs:
+      cluster-name: ${{ steps.deploy-cdk.outputs.cluster-name }}
+      alb-dns: ${{ steps.deploy-cdk.outputs.alb-dns }}
 
     steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Prepare
+        uses: ./.github/composite-actions/prepare
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
@@ -164,15 +170,24 @@ jobs:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsDeployRole
           role-session-name: ${{ github.actor }}_${{ github.job }}
 
-      - name: Force new deployment
+      - name: Deploy FargateStack (ECS)
+        id: deploy-cdk
+        env:
+          VPC_ID: ${{ env.AWS_VPC_ID }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          aws ecs update-service \
-            --cluster ${{ needs.deploy-infrastructure.outputs.cluster-name }} \
-            --service mp-api-service \
-            --force-new-deployment
+          cd infrastructure/cdk-app
+          pnpm exec cdk deploy FargateStack --require-approval never --outputs-file outputs.json
+
+          # Extract outputs
+          CLUSTER_NAME=$(jq -r '.FargateStack.ClusterName // empty' outputs.json)
+          ALB_DNS=$(jq -r '.FargateStack.LoadBalancerDns // empty' outputs.json)
+
+          echo "cluster-name=$CLUSTER_NAME" >> $GITHUB_OUTPUT
+          echo "alb-dns=$ALB_DNS" >> $GITHUB_OUTPUT
 
       - name: Wait for service stability
         run: |
           aws ecs wait services-stable \
-            --cluster ${{ needs.deploy-infrastructure.outputs.cluster-name }} \
+            --cluster ${{ steps.deploy-cdk.outputs.cluster-name }} \
             --services mp-api-service
