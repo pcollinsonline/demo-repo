@@ -16,6 +16,7 @@ permissions:
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+  AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
 
 jobs:
   lint:
@@ -68,10 +69,11 @@ jobs:
 
     outputs:
       ecr-repository: ${{ steps.deploy-cdk.outputs.ecr-repository }}
+      cluster-name: ${{ steps.deploy-cdk.outputs.cluster-name }}
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Prepare
         uses: ./.github/composite-actions/prepare
@@ -83,23 +85,26 @@ jobs:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsDeployRole
           role-session-name: ${{ github.actor }}_${{ github.job }}
 
-      - name: Deploy CDK stack
+      - name: Deploy CDK stacks
         id: deploy-cdk
+        env:
+          VPC_ID: ${{ env.AWS_VPC_ID }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           cd infrastructure/cdk-app
           pnpm exec cdk deploy --require-approval never --outputs-file outputs.json '**'
 
           # Extract outputs
-          ECR_REPO=$(jq -r '.[] | .EcrRepositoryUri' outputs.json)
+          ECR_REPO=$(jq -r '.[] | .EcrRepositoryUri // empty' outputs.json | head -1)
+          CLUSTER_NAME=$(jq -r '.[] | .ClusterName // empty' outputs.json | head -1)
 
           echo "ecr-repository=$ECR_REPO" >> $GITHUB_OUTPUT
+          echo "cluster-name=$CLUSTER_NAME" >> $GITHUB_OUTPUT
 
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: deploy-infrastructure
-    outputs:
-      image-tag: ${{ steps.build-image.outputs.image }}
 
     steps:
       - name: Check out code
@@ -118,7 +123,7 @@ jobs:
 
       - name: Verify ECR access
         run: |
-          aws ecr describe-repositories --repository-names app-mp --region us-east-1
+          aws ecr describe-repositories --repository-names app-mp --region ${{ env.AWS_REGION }}
           aws sts get-caller-identity
 
       - name: Set up Docker Buildx
@@ -136,7 +141,6 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/amd64
-          load: true
           tags: |
             ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
             ${{ env.ECR_REPOSITORY }}:latest
@@ -147,3 +151,28 @@ jobs:
             VCS_REF=${{ github.sha }}
             APP_NAME=effect-api-server
 
+  deploy-ecs:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: [deploy-infrastructure, build-and-push]
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionsDeployRole
+          role-session-name: ${{ github.actor }}_${{ github.job }}
+
+      - name: Force new deployment
+        run: |
+          aws ecs update-service \
+            --cluster ${{ needs.deploy-infrastructure.outputs.cluster-name }} \
+            --service mp-api-service \
+            --force-new-deployment
+
+      - name: Wait for service stability
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ needs.deploy-infrastructure.outputs.cluster-name }} \
+            --services mp-api-service
