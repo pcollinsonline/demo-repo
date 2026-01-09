@@ -66,17 +66,11 @@ export class FargateStack extends cdk.Stack {
       memoryLimitMiB: 512,
     })
 
-    // Container Definition with health check
+    // Container Definition (no container health check - distroless image has no shell/curl)
+    // ALB target group health check handles health monitoring
     const container = taskDefinition.addContainer('api', {
       environment: {
         NODE_ENV: 'production',
-      },
-      healthCheck: {
-        command: ['CMD-SHELL', 'curl -f http://localhost:3000/docs || exit 1'],
-        interval: cdk.Duration.seconds(30),
-        retries: 3,
-        startPeriod: cdk.Duration.seconds(60),
-        timeout: cdk.Duration.seconds(5),
       },
       image: ecs.ContainerImage.fromEcrRepository(repository, props.imageTag ?? 'latest'),
       logging: ecs.LogDrivers.awsLogs({
