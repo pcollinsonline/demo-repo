@@ -22,7 +22,6 @@ permissions:
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
-  AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
 
 jobs:
   lint:
@@ -93,7 +92,6 @@ jobs:
       - name: Deploy AppStack (ECR)
         id: deploy-cdk
         env:
-          VPC_ID: ${{ env.AWS_VPC_ID }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           cd infrastructure/cdk-app
@@ -179,7 +177,6 @@ jobs:
       - name: Deploy FargateStack (ECS)
         id: deploy-cdk
         env:
-          VPC_ID: ${{ env.AWS_VPC_ID }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           cd infrastructure/cdk-app

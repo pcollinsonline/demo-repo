@@ -10,14 +10,9 @@ const CDK_STAGE = process.env['CDK_STAGE'] ?? os.userInfo().username
 const AWS_ACCOUNT_ID = process.env['AWS_ACCOUNT_ID']
 const AWS_REGION = process.env['AWS_REGION'] ?? 'us-east-1'
 const IMAGE_TAG = process.env['IMAGE_TAG'] ?? 'latest'
-const VPC_ID = process.env['VPC_ID']
 
 if (!AWS_ACCOUNT_ID) {
   throw new Error('Required environment variable AWS_ACCOUNT_ID must be set')
-}
-
-if (!VPC_ID) {
-  throw new Error('Required environment variable VPC_ID must be set')
 }
 
 const environment = 'mp'
@@ -43,7 +38,6 @@ const fargateStack = new FargateStack(app, 'FargateStack', {
   env: { account: AWS_ACCOUNT_ID, region: AWS_REGION },
   environment,
   imageTag: IMAGE_TAG,
-  vpcId: VPC_ID,
 })
 
 // Explicit dependency: Fargate needs ECR to exist first
