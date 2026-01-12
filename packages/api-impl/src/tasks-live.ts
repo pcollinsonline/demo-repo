@@ -8,7 +8,7 @@ export const taskGroupLive = HttpApiBuilder.group(Api, 'tasks', (handlers) =>
     Effect.succeed({
       id: TaskId.make(path.id),
       done: false,
-      name: 'My Found Task V3',
+      name: 'My Found Task V4',
     }).pipe(Effect.map(wrapSingleItemResponse)),
   ),
 )
