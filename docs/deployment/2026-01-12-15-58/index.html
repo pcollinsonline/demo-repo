@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deployment Rework | Progress Dashboard</title>
+    <style>
+      :root {
+        --bg: #0a0a0f;
+        --surface: #12121a;
+        --border: #1e1e2e;
+        --text: #e4e4ed;
+        --text-dim: #6b6b7a;
+        --accent: #7c6aef;
+        --accent-glow: rgba(124, 106, 239, 0.3);
+        --success: #34d399;
+        --success-glow: rgba(52, 211, 153, 0.3);
+        --warning: #fbbf24;
+        --pending: #3b3b4f;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 3rem 2rem;
+        background-image:
+          radial-gradient(ellipse at top, rgba(124, 106, 239, 0.05) 0%, transparent 50%),
+          radial-gradient(ellipse at bottom right, rgba(52, 211, 153, 0.03) 0%, transparent 50%);
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 4rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 400;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 0.5rem;
+      }
+
+      .subtitle {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        letter-spacing: 0.3em;
+      }
+
+      .phase-label {
+        display: inline-block;
+        background: var(--accent);
+        color: var(--bg);
+        padding: 0.25rem 0.75rem;
+        font-size: 0.65rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        border-radius: 2px;
+        margin-top: 1.5rem;
+      }
+
+      .timeline {
+        position: relative;
+        padding-left: 2rem;
+      }
+
+      .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0.35rem;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: linear-gradient(to bottom, var(--accent), var(--border));
+      }
+
+      .task {
+        position: relative;
+        padding: 1rem 0 2rem 1.5rem;
+        transition: opacity 0.3s ease;
+      }
+
+      .task::before {
+        content: '';
+        position: absolute;
+        left: -1.65rem;
+        top: 1.25rem;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--pending);
+        border: 2px solid var(--bg);
+        transition: all 0.3s ease;
+      }
+
+      .task.completed::before {
+        background: var(--success);
+        box-shadow: 0 0 12px var(--success-glow);
+      }
+
+      .task.in-progress::before {
+        background: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 0.7;
+        }
+      }
+
+      .task-content {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        transition: color 0.3s ease;
+      }
+
+      .task.in-progress .task-content {
+        color: var(--text);
+      }
+
+      .task.completed .task-content {
+        color: var(--success);
+        text-decoration: line-through;
+        text-decoration-color: var(--success);
+      }
+
+      .task-number {
+        font-size: 0.6rem;
+        color: var(--text-dim);
+        margin-right: 0.75rem;
+        opacity: 0.5;
+      }
+
+      .countdown-container {
+        margin-top: 3rem;
+        padding: 1.5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        text-align: center;
+        display: none;
+      }
+
+      .countdown-container.active {
+        display: block;
+      }
+
+      .countdown-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 0.75rem;
+      }
+
+      .countdown-timer {
+        font-size: 2rem;
+        font-weight: 300;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .status-bar {
+        margin-top: 3rem;
+        padding: 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+      }
+
+      .progress-track {
+        height: 4px;
+        background: var(--pending);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), var(--success));
+        transition: width 0.5s ease;
+      }
+
+      .progress-text {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.75rem;
+        font-size: 0.65rem;
+        color: var(--text-dim);
+        letter-spacing: 0.1em;
+      }
+
+      .timestamp {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        font-size: 0.6rem;
+        color: var(--text-dim);
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Deployment Rework</h1>
+        <p class="subtitle">3-Stack Separation Implementation</p>
+        <span class="phase-label">Phase 3 - First Deployment</span>
+      </header>
+
+      <div class="timeline">
+        <div class="task completed">
+          <span class="task-content">
+            <span class="task-number">01</span>
+            Create progress dashboard HTML file
+          </span>
+        </div>
+        <div class="task completed">
+          <span class="task-content">
+            <span class="task-number">02</span>
+            Add getEnvOrThrow and getEnvOrDefault utilities
+          </span>
+        </div>
+        <div class="task completed">
+          <span class="task-content">
+            <span class="task-number">03</span>
+            Create FoundationStack
+          </span>
+        </div>
+        <div class="task completed">
+          <span class="task-content">
+            <span class="task-number">04</span>
+            Create ServiceStack
+          </span>
+        </div>
+        <div class="task completed">
+          <span class="task-content">
+            <span class="task-number">05</span>
+            Update CDK app entry point (index.ts)
+          </span>
+        </div>
+        <div class="task completed">
+          <span class="task-content">
+            <span class="task-number">06</span>
+            Delete old stack files
+          </span>
+        </div>
+        <div class="task completed">
+          <span class="task-content">
+            <span class="task-number">07</span>
+            Update GitHub workflow
+          </span>
+        </div>
+        <div class="task completed">
+          <span class="task-content">
+            <span class="task-number">08</span>
+            Run code quality checks
+          </span>
+        </div>
+        <div class="task in-progress">
+          <span class="task-content">
+            <span class="task-number">09</span>
+            Commit and push (Foundation deployment)
+          </span>
+        </div>
+        <div class="task pending">
+          <span class="task-content">
+            <span class="task-number">10</span>
+            Monitor GitHub workflow
+          </span>
+        </div>
+        <div class="task pending">
+          <span class="task-content">
+            <span class="task-number">11</span>
+            Verify AWS resources (Foundation)
+          </span>
+        </div>
+        <div class="task pending">
+          <span class="task-content">
+            <span class="task-number">12</span>
+            Re-enable deploy-service step
+          </span>
+        </div>
+        <div class="task pending">
+          <span class="task-content">
+            <span class="task-number">13</span>
+            Commit, push, and monitor (Service deployment)
+          </span>
+        </div>
+        <div class="task pending">
+          <span class="task-content">
+            <span class="task-number">14</span>
+            Verify full deployment via curl /docs
+          </span>
+        </div>
+      </div>
+
+      <div class="countdown-container">
+        <p class="countdown-label">Next workflow check in</p>
+        <p class="countdown-timer">00:30</p>
+      </div>
+
+      <div class="status-bar">
+        <div class="progress-track">
+          <div class="progress-fill" style="width: 57%"></div>
+        </div>
+        <div class="progress-text">
+          <span>8 of 14 tasks</span>
+          <span>57% complete</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timestamp">Last updated: 2026-01-12 16:02 UTC</div>
+
+    <script>
+      // Countdown timer functionality (for monitoring phases)
+      function startCountdown(seconds) {
+        const container = document.querySelector('.countdown-container')
+        const timer = document.querySelector('.countdown-timer')
+        container.classList.add('active')
+
+        let remaining = seconds
+        const interval = setInterval(() => {
+          const mins = Math.floor(remaining / 60)
+          const secs = remaining % 60
+          timer.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+
+          if (remaining <= 0) {
+            clearInterval(interval)
+            container.classList.remove('active')
+          }
+          remaining--
+        }, 1000)
+      }
+    </script>
+  </body>
+</html>
