@@ -227,7 +227,7 @@
       <header>
         <h1>Deployment Rework</h1>
         <p class="subtitle">3-Stack Separation Implementation</p>
-        <span class="phase-label">Phase 3 - First Deployment</span>
+        <span class="phase-label">Phase 5 - Service Deployment</span>
       </header>
 
       <div class="timeline">
@@ -279,31 +279,31 @@
             Run code quality checks
           </span>
         </div>
-        <div class="task in-progress">
+        <div class="task completed">
           <span class="task-content">
             <span class="task-number">09</span>
             Commit and push (Foundation deployment)
           </span>
         </div>
-        <div class="task pending">
+        <div class="task completed">
           <span class="task-content">
             <span class="task-number">10</span>
             Monitor GitHub workflow
           </span>
         </div>
-        <div class="task pending">
+        <div class="task completed">
           <span class="task-content">
             <span class="task-number">11</span>
             Verify AWS resources (Foundation)
           </span>
         </div>
-        <div class="task pending">
+        <div class="task completed">
           <span class="task-content">
             <span class="task-number">12</span>
             Re-enable deploy-service step
           </span>
         </div>
-        <div class="task pending">
+        <div class="task in-progress">
           <span class="task-content">
             <span class="task-number">13</span>
             Commit, push, and monitor (Service deployment)
@@ -317,44 +317,71 @@
         </div>
       </div>
 
-      <div class="countdown-container">
-        <p class="countdown-label">Next workflow check in</p>
-        <p class="countdown-timer">00:30</p>
+      <div class="countdown-container active">
+        <p class="countdown-label">Workflow Status</p>
+        <p class="countdown-timer" id="status">PENDING</p>
+        <p class="countdown-label" style="margin-top: 0.75rem" id="step-name">
+          Deploying ServiceStack...
+        </p>
+        <div id="countdown-section">
+          <p class="countdown-label" style="margin-top: 1.5rem; opacity: 0.5">Next check in</p>
+          <p class="countdown-timer" id="countdown" style="font-size: 1.25rem">00:30</p>
+        </div>
+        <button
+          id="refresh-btn"
+          onclick="location.reload()"
+          style="
+            display: none;
+            margin-top: 1.5rem;
+            padding: 0.75rem 2rem;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            cursor: pointer;
+          ">
+          Refresh Status
+        </button>
       </div>
 
       <div class="status-bar">
         <div class="progress-track">
-          <div class="progress-fill" style="width: 57%"></div>
+          <div class="progress-fill" style="width: 86%"></div>
         </div>
         <div class="progress-text">
-          <span>8 of 14 tasks</span>
-          <span>57% complete</span>
+          <span>12 of 14 tasks</span>
+          <span>86% complete</span>
         </div>
       </div>
     </div>
 
-    <div class="timestamp">Last updated: 2026-01-12 16:02 UTC</div>
+    <div class="timestamp">Last updated: 2026-01-12 16:17 UTC</div>
 
     <script>
-      // Countdown timer functionality (for monitoring phases)
-      function startCountdown(seconds) {
-        const container = document.querySelector('.countdown-container')
-        const timer = document.querySelector('.countdown-timer')
-        container.classList.add('active')
+      const INTERVAL_SECONDS = 30
+      let remaining = INTERVAL_SECONDS
+      const countdownEl = document.getElementById('countdown')
+      const countdownSection = document.getElementById('countdown-section')
+      const refreshBtn = document.getElementById('refresh-btn')
 
-        let remaining = seconds
-        const interval = setInterval(() => {
+      function updateCountdown() {
+        if (remaining > 0) {
           const mins = Math.floor(remaining / 60)
           const secs = remaining % 60
-          timer.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-
-          if (remaining <= 0) {
-            clearInterval(interval)
-            container.classList.remove('active')
-          }
+          countdownEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
           remaining--
-        }, 1000)
+        } else {
+          countdownSection.style.display = 'none'
+          refreshBtn.style.display = 'inline-block'
+        }
       }
+
+      updateCountdown()
+      setInterval(updateCountdown, 1000)
     </script>
   </body>
 </html>

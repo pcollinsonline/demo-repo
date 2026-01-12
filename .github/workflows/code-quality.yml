@@ -157,7 +157,6 @@ jobs:
     name: Deploy ECS Service
     runs-on: ubuntu-latest
     needs: [deploy-foundation, build-and-push]
-    if: false  # TEMPORARILY DISABLED
 
     outputs:
       cluster-name: ${{ steps.deploy-cdk.outputs.cluster-name }}
