@@ -1,19 +1,16 @@
 #!/usr/bin/env node
 import os from 'node:os'
 
-import { BaseApp } from '@packages/aws-cdk-lib'
+import { BaseApp, getEnvOrDefault, getEnvOrThrow } from '@packages/aws-cdk-lib'
 
-import { AppStack } from './stack/app-stack.js'
-import { FargateStack } from './stack/fargate-stack.js'
+import { FoundationStack } from './stack/foundation-stack.js'
+import { ServiceStack } from './stack/service-stack.js'
 
-const CDK_STAGE = process.env['CDK_STAGE'] ?? os.userInfo().username
-const AWS_ACCOUNT_ID = process.env['AWS_ACCOUNT_ID']
-const AWS_REGION = process.env['AWS_REGION'] ?? 'us-east-1'
-const IMAGE_TAG = process.env['IMAGE_TAG'] ?? 'latest'
-
-if (!AWS_ACCOUNT_ID) {
-  throw new Error('Required environment variable AWS_ACCOUNT_ID must be set')
-}
+const CDK_STAGE = getEnvOrDefault('CDK_STAGE', os.userInfo().username)
+const AWS_ACCOUNT_ID = getEnvOrThrow('AWS_ACCOUNT_ID')
+const AWS_REGION = getEnvOrDefault('AWS_REGION', 'us-west-2')
+const AWS_VPC_ID = getEnvOrThrow('AWS_VPC_ID')
+const IMAGE_TAG = getEnvOrDefault('IMAGE_TAG', 'latest')
 
 const environment = 'mp'
 
@@ -26,21 +23,27 @@ const app = new BaseApp({
   },
 })
 
-const appStack = new AppStack(app, 'AppStack', {
-  description: 'Deployment stack for G4 application',
+const foundationStack = new FoundationStack(app, 'FoundationStack', {
+  description: 'Long-lived infrastructure (ECR, ECS Cluster, ALB)',
   env: { account: AWS_ACCOUNT_ID, region: AWS_REGION },
   environment,
+  vpcId: AWS_VPC_ID,
 })
 
-const fargateStack = new FargateStack(app, 'FargateStack', {
-  description: 'ECS Fargate deployment for G4 API',
-  ecrRepositoryName: `app-${environment}`,
+const serviceStack = new ServiceStack(app, 'ServiceStack', {
+  albSecurityGroupId: foundationStack.albSecurityGroup.securityGroupId,
+  clusterArn: foundationStack.cluster.clusterArn,
+  description: 'ECS Fargate service deployment',
+  ecrRepositoryName: foundationStack.repository.repositoryName,
   env: { account: AWS_ACCOUNT_ID, region: AWS_REGION },
   environment,
   imageTag: IMAGE_TAG,
+  listenerArn: foundationStack.albListener.listenerArn,
+  logGroupArn: foundationStack.logGroup.logGroupArn,
+  taskSecurityGroupId: foundationStack.taskSecurityGroup.securityGroupId,
+  vpcId: AWS_VPC_ID,
 })
 
-// Explicit dependency: Fargate needs ECR to exist first
-fargateStack.addDependency(appStack)
+serviceStack.addDependency(foundationStack)
 
 app.synth()
